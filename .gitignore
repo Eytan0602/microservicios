@@ -1,0 +1,20 @@
+# Build output
+**/target/
+**/build/
+
+# IDE and editor state
+.idea/
+.vscode/
+*.iml
+
+# Local environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Generated modernization session logs and reports
+**/.github/modernize/
+
+# Operating system files
+.DS_Store
+Thumbs.db

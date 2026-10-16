@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel Atención Médica</title>
+<style>
+  :root { --bg:#f4f6f8; --card:#fff; --ink:#1d2733; --muted:#6b7785; --brand:#0f766e; --line:#dde3e9; --err:#b42318; --ok:#067647; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, Segoe UI, sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:var(--brand); color:#fff; padding:14px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+  header h1 { font-size:18px; margin:0; }
+  #estado { font-size:13px; display:flex; gap:10px; flex-wrap:wrap; }
+  .dot { padding:2px 8px; border-radius:10px; background:#ffffff33; }
+  .dot.on { background:#17b26a; } .dot.off { background:#f04438; }
+  main { max-width:1100px; margin:16px auto; padding:0 12px; display:grid; gap:14px; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); }
+  section { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; }
+  section h2 { margin:0 0 4px; font-size:15px; }
+  section small { color:var(--muted); display:block; margin-bottom:10px; }
+  label { display:block; font-size:12px; color:var(--muted); margin:8px 0 2px; }
+  input, select, textarea { width:100%; padding:7px 8px; border:1px solid var(--line); border-radius:6px; font:inherit; font-size:14px; }
+  button { margin-top:10px; margin-right:6px; padding:7px 12px; border:0; border-radius:6px; background:var(--brand); color:#fff; font:inherit; font-size:13px; cursor:pointer; }
+  button.sec { background:#e7ecf0; color:var(--ink); }
+  button.x { background:var(--err); padding:3px 8px; margin:0; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-top:10px; }
+  th, td { text-align:left; padding:5px 4px; border-bottom:1px solid var(--line); vertical-align:top; word-break:break-all; }
+  .ids { font-size:12px; background:#eef6f5; border-radius:6px; padding:8px; margin-top:10px; word-break:break-all; }
+  #log { grid-column:1 / -1; }
+  #salida { background:#0f1720; color:#d6e2ee; padding:10px; border-radius:8px; max-height:260px; overflow:auto; font:12px/1.5 ui-monospace, Consolas, monospace; white-space:pre-wrap; }
+  .ok { color:#6ce9a6; } .er { color:#fda29b; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Panel Atención Médica</h1>
+  <div id="estado"></div>
+  <div id="quien" style="display:none;font-size:13px">
+    <span id="quien-txt"></span>
+    <button class="sec" style="margin:0 0 0 8px" onclick="salir()">Salir</button>
+  </div>
+</header>
+
+<div id="pantalla-login" style="max-width:380px;margin:60px auto;padding:0 12px">
+  <section>
+    <h2>Iniciar sesión · Médico <small style="display:inline">(8081)</small></h2>
+    <small>Valida usuario y clave contra MicroValidar.</small>
+    <label>Usuario</label><input id="lg-usuario" value="jperez">
+    <label>Clave</label><input id="lg-clave" type="password" value="1234" onkeydown="if(event.key==='Enter')login()">
+    <button onclick="login()">Iniciar sesión</button>
+    <details style="margin-top:12px">
+      <summary style="cursor:pointer;font-size:14px;color:var(--brand);font-weight:600">+ Registrar un médico nuevo</summary>
+      <label>Nombre completo</label><input id="nm-nombre" placeholder="Ej: Ana Torres">
+      <label>Especialidad</label><input id="nm-esp" placeholder="Ej: Pediatria">
+      <label>Usuario</label><input id="nm-usuario" placeholder="Ej: atorres">
+      <label>Clave</label><input id="nm-clave" type="password" placeholder="Ej: 1234">
+      <label>Repetir clave</label><input id="nm-clave2" type="password">
+      <button onclick="crearMedico()">Registrar médico</button>
+      <div class="ids" id="nm-msg" style="display:none"></div>
+    </details>
+    <div class="ids" id="sesion">Sin sesión</div>
+  </section>
+</div>
+
+<main id="panel" style="display:none">
+
+  <!-- 2. CITAS -->
+  <section>
+    <h2>2 · Citas <small style="display:inline">(8082)</small></h2>
+    <small>El médico consulta sus citas pendientes y atiende una.</small>
+    <label>Paciente</label><input id="ct-paciente" value="Maria Lopez">
+    <label>Inicio</label><input id="ct-ini" type="datetime-local">
+    <label>Fin</label><input id="ct-fin" type="datetime-local">
+    <button class="sec" onclick="crearCita()">Crear cita de prueba</button>
+    <button onclick="listarCitas()">Mis citas pendientes</button>
+    <table id="tb-citas"></table>
+  </section>
+
+  <!-- 3. ATENCION -->
+  <section>
+    <h2>3 · Atención médica <small style="display:inline">(8083)</small></h2>
+    <small>Diagnóstico y tratamiento de la atención activa.</small>
+    <div class="ids" id="atencion-activa">Sin atención activa</div>
+    <label>Diagnóstico</label><input id="at-diag">
+    <label>Tratamiento</label><input id="at-trat">
+    <label>Observaciones</label><input id="at-obs">
+    <button onclick="registrarAtencion()">Guardar</button>
+    <button class="sec" onclick="verAtencion()">Consultar</button>
+  </section>
+
+  <!-- 4. CATALOGO -->
+  <section>
+    <h2>4 · Catálogo <small style="display:inline">(8084)</small></h2>
+    <small>Carga datos de prueba y refresca las listas.</small>
+    <label>Medicamento</label><input id="cg-med" value="Paracetamol">
+    <label>Presentación</label><input id="cg-pres" value="Tableta 500 mg">
+    <button class="sec" onclick="addMedicamento()">Agregar medicamento</button>
+    <label>Tipo de análisis</label><input id="cg-ta" value="Hemograma completo">
+    <button class="sec" onclick="addTipo()">Agregar tipo</button>
+    <button onclick="cargarCatalogo()">Refrescar listas</button>
+  </section>
+
+  <!-- 5. RECETA -->
+  <section>
+    <h2>5 · Receta <small style="display:inline">(8085)</small></h2>
+    <small>Elige medicamentos del catálogo y genera la receta.</small>
+    <label>Medicamento</label><select id="rc-med"></select>
+    <label>Indicaciones</label><input id="rc-ind" value="1 cada 8 horas">
+    <label>Cantidad</label><input id="rc-cant" type="number" value="10" min="1">
+    <button onclick="agregarLineaReceta()">Agregar a la cesta</button>
+    <table id="tb-receta"></table>
+    <label>Indicaciones generales</label><input id="rc-gen" value="Tomar con abundante agua">
+    <button onclick="grabarReceta()">Grabar receta</button>
+  </section>
+
+  <!-- 6. ANALISIS -->
+  <section>
+    <h2>6 · Análisis clínico <small style="display:inline">(8086)</small></h2>
+    <small>Elige tipos de análisis del catálogo y genera el análisis.</small>
+    <label>Tipo de análisis</label><select id="an-ta"></select>
+    <label>Observaciones</label><input id="an-obs" value="En ayunas">
+    <button onclick="agregarLineaAnalisis()">Agregar a la cesta</button>
+    <table id="tb-analisis"></table>
+    <button onclick="grabarAnalisis()">Grabar análisis</button>
+  </section>
+
+  <!-- 7. HISTORIA -->
+  <section>
+    <h2>7 · Historia clínica <small style="display:inline">(8087)</small></h2>
+    <small>Almacena toda la atención en la historia del paciente.</small>
+    <button onclick="registrarHistoria()">Registrar atención en historia</button>
+    <button class="sec" onclick="listarHistorias()">Ver historias</button>
+    <table id="tb-historias"></table>
+    <table id="tb-detalle"></table>
+  </section>
+
+  <section id="log">
+    <h2>Respuestas del servidor</h2>
+    <div id="salida"></div>
+  </section>
+</main>
+
+<script>
+const URL = {
+  validar:"http://localhost:8081", cita:"http://localhost:8082", atencion:"http://localhost:8083",
+  catalogo:"http://localhost:8084", receta:"http://localhost:8085", analisis:"http://localhost:8086",
+  historia:"http://localhost:8087"
+};
+const S = { medico:null, idCita:null, idAtencion:null };
+const $ = id => document.getElementById(id);
+
+function log(titulo, status, cuerpo) {
+  const cls = status >= 200 && status < 300 ? "ok" : "er";
+  const t = typeof cuerpo === "string" ? cuerpo : JSON.stringify(cuerpo, null, 2);
+  $("salida").innerHTML = `<span class="${cls}">[${status}] ${titulo}</span>\n${t || ""}\n\n` + $("salida").innerHTML;
+}
+
+async function api(titulo, metodo, url, body) {
+  try {
+    const r = await fetch(url, {
+      method: metodo,
+      headers: body ? { "Content-Type":"application/json" } : {},
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const txt = await r.text();
+    let datos = txt;
+    try { datos = txt ? JSON.parse(txt) : ""; } catch (e) {}
+    log(titulo, r.status, datos);
+    return { ok:r.ok, status:r.status, datos };
+  } catch (e) {
+    log(titulo, 0, "No se pudo conectar (¿servicio apagado o falta CORS?)");
+    return { ok:false, status:0, datos:null };
+  }
+}
+
+function necesitaAtencion() {
+  if (!S.idAtencion) { alert("Primero atiende una cita (paso 2)."); return false; }
+  return true;
+}
+
+/* ---------- Estado de los servicios ---------- */
+const PUERTOS = [["Validar","validar","/medicos"],["Cita","cita","/citas"],["Atención","atencion","/atenciones"],
+  ["Catálogo","catalogo","/catalogo/medicamentos"],["Receta","receta","/recetas/x/lineas"],
+  ["Análisis","analisis","/analisis/lineas"],["Historia","historia","/historias"]];
+async function revisarEstado() {
+  let html = "";
+  for (const [n,k,ruta] of PUERTOS) {
+    let on = false;
+    try { const r = await fetch(URL[k]+ruta); on = r.status < 500; } catch (e) {}
+    html += `<span class="dot ${on?"on":"off"}">${n}</span>`;
+  }
+  $("estado").innerHTML = html;
+}
+
+/* ---------- 1. Login ---------- */
+async function crearMedico() {
+  const msg = $("nm-msg");
+  const decir = t => { msg.style.display = "block"; msg.textContent = t; };
+  const nombre = $("nm-nombre").value.trim(), esp = $("nm-esp").value.trim();
+  const usuario = $("nm-usuario").value.trim(), clave = $("nm-clave").value;
+  if (!nombre || !esp || !usuario || !clave) return decir("Completa todos los campos.");
+  if (clave !== $("nm-clave2").value) return decir("Las claves no coinciden.");
+  const r = await api("Crear médico","POST",URL.validar+"/medicos", { nombre, especialidad:esp, usuario, clave });
+  if (r.status === 409) decir("Ese usuario ya existe. Elige otro.");
+  else if (r.status === 0) decir("No se pudo conectar con MicroValidar (8081). ¿Está encendido?");
+  else if (r.ok) {
+    decir("Médico creado. Ya puedes iniciar sesión.");
+    $("lg-usuario").value = usuario; $("lg-clave").value = clave;
+    ["nm-nombre","nm-esp","nm-usuario","nm-clave","nm-clave2"].forEach(i => $(i).value = "");
+  } else decir("Error " + r.status + " al crear el médico.");
+}
+async function login() {
+  const r = await api("Login","POST",URL.validar+"/medicos/validar",
+    { usuario:$("lg-usuario").value, clave:$("lg-clave").value });
+  if (r.ok) {
+    S.medico = r.datos;
+    $("pantalla-login").style.display = "none";
+    $("panel").style.display = "grid";
+    $("quien").style.display = "block";
+    $("quien-txt").textContent = `Dr(a). ${r.datos.nombre} · ${r.datos.especialidad} · id ${r.datos.id}`;
+    cargarCatalogo();
+    listarCitas();
+  } else {
+    S.medico = null;
+    $("sesion").textContent = "Usuario o clave incorrectos";
+  }
+}
+
+function salir() {
+  S.medico = null; S.idCita = null; S.idAtencion = null;
+  $("panel").style.display = "none";
+  $("quien").style.display = "none";
+  $("pantalla-login").style.display = "block";
+  $("sesion").textContent = "Sesión cerrada";
+  $("atencion-activa").textContent = "Sin atención activa";
+}
+
+/* ---------- 2. Citas ---------- */
+function ahoraLocal(min) {
+  const d = new Date(Date.now() + min*60000 - new Date().getTimezoneOffset()*60000);
+  return d.toISOString().slice(0,16);
+}
+$("ct-ini").value = ahoraLocal(60); $("ct-fin").value = ahoraLocal(80);
+
+async function crearCita() {
+  if (!S.medico) return alert("Inicia sesión primero.");
+  await api("Crear cita","POST",URL.cita+"/citas",
+    { paciente:$("ct-paciente").value, horaInicio:$("ct-ini").value+":00", horaFin:$("ct-fin").value+":00", idMedico:S.medico.id });
+  listarCitas();
+}
+async function listarCitas() {
+  if (!S.medico) return alert("Inicia sesión primero.");
+  const r = await api("Citas pendientes","GET",`${URL.cita}/citas/medico/${S.medico.id}/pendientes`);
+  const t = $("tb-citas");
+  t.innerHTML = "<tr><th>Paciente</th><th>Horario</th><th></th></tr>";
+  (r.datos || []).forEach(c => {
+    t.innerHTML += `<tr><td>${c.paciente}</td><td>${(c.horaInicio||"").replace("T"," ").slice(0,16)}</td>
+      <td><button onclick="atender('${c.idCita}')">Atender</button></td></tr>`;
+  });
+}
+async function atender(idCita) {
+  const r = await api("Generar atención","POST",URL.atencion+"/atenciones",{ idCita });
+  if (r.ok) {
+    S.idCita = idCita; S.idAtencion = r.datos.idAtencion;
+    $("atencion-activa").textContent = `Atención: ${S.idAtencion}\nCita: ${idCita}`;
+    $("at-diag").value = $("at-trat").value = $("at-obs").value = "";
+    cargarCesta(); cargarCestaAnalisis();
+    listarCitas();
+  }
+}
+
+/* ---------- 3. Atención ---------- */
+async function registrarAtencion() {
+  if (!necesitaAtencion()) return;
+  await api("Registrar atención","PUT",`${URL.atencion}/atenciones/${S.idAtencion}`,
+    { diagnostico:$("at-diag").value, tratamiento:$("at-trat").value, observaciones:$("at-obs").value });
+}
+async function verAtencion() {
+  if (!necesitaAtencion()) return;
+  await api("Consultar atención","GET",`${URL.atencion}/atenciones/${S.idAtencion}`);
+}
+
+/* ---------- 4. Catálogo ---------- */
+async function addMedicamento() {
+  await api("Agregar medicamento","POST",URL.catalogo+"/catalogo/medicamentos",
+    { nombre:$("cg-med").value, presentacion:$("cg-pres").value, stock:100 });
+  cargarCatalogo();
+}
+async function addTipo() {
+  await api("Agregar tipo de análisis","POST",URL.catalogo+"/catalogo/tipos-analisis",
+    { nombre:$("cg-ta").value, descripcion:"Analisis clinico" });
+  cargarCatalogo();
+}
+async function cargarCatalogo() {
+  const m = await api("Listar medicamentos","GET",URL.catalogo+"/catalogo/medicamentos");
+  $("rc-med").innerHTML = (m.datos||[]).map(x=>`<option value="${x.idMedicamento}">${x.nombre} · ${x.presentacion}</option>`).join("");
+  const t = await api("Listar tipos de análisis","GET",URL.catalogo+"/catalogo/tipos-analisis");
+  $("an-ta").innerHTML = (t.datos||[]).map(x=>`<option value="${x.idTA}">${x.nombre}</option>`).join("");
+}
+
+/* ---------- 5. Receta ---------- */
+async function agregarLineaReceta() {
+  if (!necesitaAtencion()) return;
+  await api("Agregar línea de receta","POST",`${URL.receta}/recetas/${S.idAtencion}/lineas`,
+    { idMedicamento:$("rc-med").value, indicaciones:$("rc-ind").value, cantidad:parseInt($("rc-cant").value) });
+  cargarCesta();
+}
+async function cargarCesta() {
+  if (!S.idAtencion) return;
+  const r = await api("Cesta de receta","GET",`${URL.receta}/recetas/${S.idAtencion}/lineas`);
+  const t = $("tb-receta");
+  t.innerHTML = "<tr><th>Medicamento</th><th>Cant.</th><th></th></tr>";
+  (r.datos||[]).forEach(l => t.innerHTML += `<tr><td>${l.nombre}<br><small>${l.indicaciones||""}</small></td><td>${l.cantidad}</td>
+    <td><button class="x" onclick="quitarLineaReceta('${l.idLR}')">x</button></td></tr>`);
+}
+async function quitarLineaReceta(id) {
+  await api("Quitar línea de receta","DELETE",`${URL.receta}/recetas/${S.idAtencion}/lineas/${id}`);
+  cargarCesta();
+}
+async function grabarReceta() {
+  if (!necesitaAtencion()) return;
+  await api("Grabar receta","POST",`${URL.receta}/recetas/${S.idAtencion}`, { indicaciones:$("rc-gen").value });
+  cargarCesta();
+}
+
+/* ---------- 6. Análisis (cesta global: rutas originales) ---------- */
+async function agregarLineaAnalisis() {
+  if (!necesitaAtencion()) return;
+  await api("Agregar línea de análisis","POST",URL.analisis+"/analisis/lineas",
+    { idTA:$("an-ta").value, observaciones:$("an-obs").value });
+  cargarCestaAnalisis();
+}
+async function cargarCestaAnalisis() {
+  const r = await api("Cesta de análisis","GET",URL.analisis+"/analisis/lineas");
+  const t = $("tb-analisis");
+  t.innerHTML = "<tr><th>Análisis</th><th>Obs.</th><th></th></tr>";
+  (r.datos||[]).forEach(l => t.innerHTML += `<tr><td>${l.nombre}</td><td>${l.observaciones||""}</td>
+    <td><button class="x" onclick="quitarLineaAnalisis('${l.idLA}')">x</button></td></tr>`);
+}
+async function quitarLineaAnalisis(id) {
+  await api("Quitar línea de análisis","DELETE",`${URL.analisis}/analisis/lineas/${id}`);
+  cargarCestaAnalisis();
+}
+async function grabarAnalisis() {
+  if (!necesitaAtencion()) return;
+  await api("Grabar análisis","POST",URL.analisis+"/analisis", { idAtencion:S.idAtencion, observaciones:"Solicitado por el médico" });
+  cargarCestaAnalisis();
+}
+
+/* ---------- 7. Historia ---------- */
+async function registrarHistoria() {
+  if (!necesitaAtencion()) return;
+  await api("Registrar en historia","POST",`${URL.historia}/historias/atencion/${S.idAtencion}`);
+  listarHistorias();
+}
+async function listarHistorias() {
+  const r = await api("Historias","GET",URL.historia+"/historias");
+  const t = $("tb-historias");
+  t.innerHTML = "<tr><th>Paciente</th><th>Estado</th><th></th></tr>";
+  (r.datos||[]).forEach(h => t.innerHTML += `<tr><td>${h.paciente}</td><td>${h.estado}</td>
+    <td><button class="sec" onclick="verDetalle('${h.idHC}')">Atenciones</button></td></tr>`);
+}
+async function verDetalle(idHC) {
+  const r = await api("Atenciones de la historia","GET",`${URL.historia}/historias/${idHC}/atenciones`);
+  const t = $("tb-detalle");
+  t.innerHTML = "<tr><th>Fecha</th><th>Diagnóstico</th><th>Receta</th><th>Análisis</th></tr>";
+  (r.datos||[]).forEach(d => t.innerHTML += `<tr><td>${d.fecha}</td><td>${d.diagnostico||"-"}</td>
+    <td>${d.idReceta?"Sí":"No"}</td><td>${d.idAnalisis?"Sí":"No"}</td></tr>`);
+}
+
+revisarEstado(); setInterval(revisarEstado, 8000);
+cargarCatalogo();
+</script>
+</body>
+</html>
