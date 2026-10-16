@@ -4,13 +4,13 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.UUID;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DatosIniciales implements CommandLineRunner {
     private final Repositorio citas;
+    private final java.time.Clock reloj = java.time.Clock.systemDefaultZone();
 
     public DatosIniciales(Repositorio citas) {
         this.citas = citas;
@@ -18,22 +18,30 @@ public class DatosIniciales implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (citas.count() > 0) {
+        if (citas.findById("demo-clinica-1").isPresent()) {
             return;
         }
 
-        citas.save(cita("María López", "12345678", 1L,
-                proximoDiaLaboral(LocalDate.now().plusDays(1), false), "09:30"));
-        citas.save(cita("Pedro Sánchez", "23456789", 2L,
-                proximoDiaLaboral(LocalDate.now().plusDays(1), false), "14:30"));
-        citas.save(cita("Lucía Herrera", "34567890", 3L,
-                proximoDiaLaboral(LocalDate.now().plusDays(1), true), "08:30"));
+        boolean demoAlreadyPresent = citas.findAll().stream()
+            .anyMatch(existing -> existing.getDniPaciente() != null
+                && existing.getDniPaciente().startsWith("DEMO-CLINICA-"));
+        if (demoAlreadyPresent) {
+            return;
+        }
+
+        LocalDate hoy = LocalDate.now(reloj);
+        citas.save(cita("demo-clinica-1", "María López", "DEMO-CLINICA-1001", 1L,
+            proximoDiaLaboral(hoy.plusDays(1), false), "09:30"));
+        citas.save(cita("demo-clinica-2", "Pedro Sánchez", "DEMO-CLINICA-1002", 2L,
+            proximoDiaLaboral(hoy.plusDays(1), false), "14:30"));
+        citas.save(cita("demo-clinica-3", "Lucía Herrera", "DEMO-CLINICA-1003", 3L,
+            proximoDiaLaboral(hoy.plusDays(1), true), "08:30"));
     }
 
-    private CitaMedica cita(String paciente, String dni, Long idMedico, LocalDate fecha, String hora) {
+        private CitaMedica cita(String idCita, String paciente, String dni, Long idMedico, LocalDate fecha, String hora) {
         CitaMedica cita = new CitaMedica();
         LocalDateTime inicio = LocalDateTime.of(fecha, LocalTime.parse(hora));
-        cita.setIdCita(UUID.randomUUID().toString());
+        cita.setIdCita(idCita);
         cita.setPaciente(paciente);
         cita.setDniPaciente(dni);
         cita.setIdMedico(idMedico);

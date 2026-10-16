@@ -66,13 +66,8 @@
   <!-- 2. CITAS -->
   <section>
     <h2>2 · Citas <small style="display:inline">(8082)</small></h2>
-    <small>El médico consulta sus citas pendientes y atiende una.</small>
-    <label>Paciente</label><input id="ct-paciente" value="Maria Lopez">
-    <label>DNI del paciente</label><input id="ct-dni" value="45678901">
-    <label>Inicio</label><input id="ct-ini" type="datetime-local">
-    <label>Fin</label><input id="ct-fin" type="datetime-local">
-    <button class="sec" onclick="crearCita()">Crear cita de prueba</button>
-    <button onclick="listarCitas()">Mis citas pendientes</button>
+     <small>El médico solo consulta y atiende las citas que le fueron asignadas.</small>
+     <button onclick="listarCitas()">Mis citas pendientes</button>
     <table id="tb-citas"></table>
   </section>
 
@@ -159,7 +154,7 @@ const URL = {
   catalogo:"http://localhost:8084", receta:"http://localhost:8085", analisis:"http://localhost:8086",
   historia:"http://localhost:8087"
 };
-const S = { medico:null, idCita:null, idAtencion:null };
+const S = { medico:null, token:null, idCita:null, idAtencion:null, misCitas:new Set() };
 const $ = id => document.getElementById(id);
 
 function log(titulo, status, cuerpo) {
@@ -169,10 +164,12 @@ function log(titulo, status, cuerpo) {
 }
 
 async function api(titulo, metodo, url, body) {
+  const headers = body ? { "Content-Type":"application/json" } : {};
+  if (S.token) headers.Authorization = `Bearer ${S.token}`;
   try {
     const r = await fetch(url, {
       method: metodo,
-      headers: body ? { "Content-Type":"application/json" } : {},
+      headers,
       body: body ? JSON.stringify(body) : undefined
     });
     const txt = await r.text();
@@ -192,7 +189,7 @@ function necesitaAtencion() {
 }
 
 /* ---------- Estado de los servicios ---------- */
-const PUERTOS = [["Validar","validar","/medicos"],["Cita","cita","/citas"],["Atención","atencion","/atenciones"],
+const PUERTOS = [["Validar","validar","/medicos"],["Cita","cita","/citas/mis-pendientes"],["Atención","atencion","/atenciones"],
   ["Catálogo","catalogo","/catalogo/medicamentos"],["Receta","receta","/recetas/x/lineas"],
   ["Análisis","analisis","/analisis/lineas"],["Historia","historia","/historias"]];
 async function revisarEstado() {
@@ -226,22 +223,23 @@ async function login() {
   const r = await api("Login","POST",URL.validar+"/medicos/validar",
     { usuario:$("lg-usuario").value, clave:$("lg-clave").value });
   if (r.ok) {
-    S.medico = r.datos;
+    S.medico = r.datos.medico;
+    S.token = r.datos.token;
     $("pantalla-login").style.display = "none";
     $("panel").style.display = "grid";
     $("quien").style.display = "block";
-    $("quien-txt").textContent = `Dr(a). ${r.datos.nombre} · ${r.datos.especialidad} · id ${r.datos.id}`;
+    $("quien-txt").textContent = `Dr(a). ${S.medico.nombre} · ${S.medico.especialidad} · id ${S.medico.id}`;
     cargarCatalogo();
     listarCitas();
     listarHorarios();
   } else {
-    S.medico = null;
+    S.medico = null; S.token = null; S.misCitas.clear();
     $("sesion").textContent = "Usuario o clave incorrectos";
   }
 }
 
 function salir() {
-  S.medico = null; S.idCita = null; S.idAtencion = null;
+  S.medico = null; S.token = null; S.idCita = null; S.idAtencion = null; S.misCitas.clear();
   $("panel").style.display = "none";
   $("quien").style.display = "none";
   $("pantalla-login").style.display = "block";
@@ -250,24 +248,15 @@ function salir() {
 }
 
 /* ---------- 2. Citas ---------- */
-function ahoraLocal(min) {
-  const d = new Date(Date.now() + min*60000 - new Date().getTimezoneOffset()*60000);
-  return d.toISOString().slice(0,16);
-}
-$("ct-ini").value = ahoraLocal(60); $("ct-fin").value = ahoraLocal(80);
-
-async function crearCita() {
-  if (!S.medico) return alert("Inicia sesión primero.");
-  await api("Crear cita","POST",URL.cita+"/citas",
-    { paciente:$("ct-paciente").value, dniPaciente:$("ct-dni").value, horaInicio:$("ct-ini").value+":00", horaFin:$("ct-fin").value+":00", idMedico:S.medico.id });
-  listarCitas();
-}
 async function listarCitas() {
   if (!S.medico) return alert("Inicia sesión primero.");
-  const r = await api("Citas pendientes","GET",`${URL.cita}/citas/medico/${S.medico.id}/pendientes`);
+  const r = await api("Mis citas pendientes","GET",`${URL.cita}/citas/mis-pendientes`);
   const t = $("tb-citas");
   t.innerHTML = "<tr><th>Paciente</th><th>DNI</th><th>Horario</th><th></th></tr>";
-  (r.datos || []).forEach(c => {
+  if (!r.ok) { S.misCitas.clear(); return; }
+  const citasPropias = (r.datos || []).filter(c => Number(c.idMedico) === Number(S.medico.id));
+  S.misCitas = new Set(citasPropias.map(c => c.idCita));
+  citasPropias.forEach(c => {
     t.innerHTML += `<tr><td>${c.paciente}</td><td>${c.dniPaciente||"-"}</td><td>${(c.horaInicio||"").replace("T"," ").slice(0,16)}</td>
       <td><button onclick="atender('${c.idCita}')">Atender</button></td></tr>`;
   });
@@ -280,6 +269,10 @@ async function listarHorarios() {
   (r.datos||[]).forEach(h => t.innerHTML += `<tr><td>${h.dias}</td><td>${h.horaInicio}</td><td>${h.horaFin}</td></tr>`);
 }
 async function atender(idCita) {
+  if (!S.medico || !S.misCitas.has(idCita)) {
+    alert("Solo puedes atender una cita asignada a tu usuario.");
+    return;
+  }
   const r = await api("Generar atención","POST",URL.atencion+"/atenciones",{ idCita });
   if (r.ok) {
     S.idCita = idCita; S.idAtencion = r.datos.idAtencion;

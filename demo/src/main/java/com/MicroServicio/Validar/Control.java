@@ -9,18 +9,20 @@ import org.springframework.web.bind.annotation.*;
 public class Control {
 
     private final Servicio servicio;
+    private final TokenService tokenService;
 
-    public Control(Servicio servicio) {
+    public Control(Servicio servicio, TokenService tokenService) {
         this.servicio = servicio;
+        this.tokenService = tokenService;
     }
 
     @PostMapping("/validar")
-    public ResponseEntity<Medico> validar(@RequestBody Entrada e) {
+    public ResponseEntity<RespuestaLogin> validar(@RequestBody Entrada e) {
         Medico m = servicio.validar(e);
         if (m == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(m);
+        return ResponseEntity.ok(new RespuestaLogin(m, tokenService.emitir(m.getId())));
     }
 
     @PostMapping
@@ -30,6 +32,12 @@ public class Control {
     }
     return ResponseEntity.ok().build();
 }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        servicio.eliminar(id);
+        return ResponseEntity.noContent().build();
+    }
 
     @GetMapping
     public List<Medico> listar() {
@@ -59,8 +67,4 @@ public class Control {
         return ResponseEntity.ok(actualizado);
     }
 
-    @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable Long id) {
-        servicio.eliminar(id);
-    }
 }

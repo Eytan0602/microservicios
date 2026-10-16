@@ -21,8 +21,9 @@ public class Servicio {
         return repositorio.findAll();
     }
 
-    public List<CitaMedica> listarPorMedico(Long idMedico) {
-        return repositorio.findByIdMedico(idMedico);
+    public CitaMedica buscarCitaDeMedico(String idCita, Long idMedico) {
+        CitaMedica cita = buscar(idCita);
+        return cita != null && idMedico.equals(cita.getIdMedico()) ? cita : null;
     }
 
     public CitaMedica grabar(CitaMedica c) {
@@ -34,9 +35,9 @@ public class Servicio {
         }
         return repositorio.save(c);
     }
-    public CitaMedica marcarAtendida(String idCita) {
+    public CitaMedica marcarAtendida(String idCita, Long idMedico) {
     CitaMedica c = buscar(idCita);
-    if (c == null) return null;
+    if (c == null || !idMedico.equals(c.getIdMedico())) return null;
     c.setEstado("ATENDIDA");
     return repositorio.save(c);
     }
