@@ -1,14 +1,22 @@
 package com.MicroServicio.Validar;
 
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class Servicio {
 
-    @Autowired
-    private Repositorio repositorio;
+    private final Repositorio repositorio;
+    private final RepositorioHorario repositorioHorario;
+
+    public Servicio(Repositorio repositorio, RepositorioHorario repositorioHorario) {
+        this.repositorio = repositorio;
+        this.repositorioHorario = repositorioHorario;
+    }
+
+    public List<HorarioMedico> listarHorarios(Long idMedico) {
+        return repositorioHorario.findByIdMedico(idMedico);
+    }
 
        public void eliminar(Long id) {
         repositorio.deleteById(id);
@@ -35,6 +43,10 @@ public class Servicio {
     public boolean grabar(Medico m) {
     if (repositorio.existsByUsuario(m.getUsuario())) {
         return false;
+    }
+    if (m.getId() == null) {
+        Medico ultimo = repositorio.findFirstByOrderByIdDesc();
+        m.setId(ultimo == null ? 1L : ultimo.getId() + 1L);
     }
     repositorio.save(m);
     return true;

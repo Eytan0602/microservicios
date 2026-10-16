@@ -1,12 +1,11 @@
 package com.MicroServicio.Validar;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 public class Medico{
     @Id
-    @GeneratedValue
     private Long id;
     private String nombre;
     private String especialidad;
@@ -56,6 +55,7 @@ public String getEspecialidad() {
     return especialidad;
 }
 
+@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 public String getClave() {
     return clave;
 }

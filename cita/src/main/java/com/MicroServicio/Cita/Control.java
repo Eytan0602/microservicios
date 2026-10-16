@@ -1,7 +1,6 @@
 package com.MicroServicio.Cita;
 
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,8 +8,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/citas")
 public class Control {
 
-    @Autowired
-    private Servicio servicio;
+    private final Servicio servicio;
+
+    public Control(Servicio servicio) {
+        this.servicio = servicio;
+    }
 
     @GetMapping
     public List<CitaMedica> listar() {

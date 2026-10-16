@@ -2,17 +2,18 @@ package cita.catalogo;
 
 import java.util.List;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class Servicio {
 
-    @Autowired
-    private RepositorioMedicamento repoMedicamento;
+    private final RepositorioMedicamento repoMedicamento;
+    private final RepositorioTipoAnalisis repoTipo;
 
-    @Autowired
-    private RepositorioTipoAnalisis repoTipo;
+    public Servicio(RepositorioMedicamento repoMedicamento, RepositorioTipoAnalisis repoTipo) {
+        this.repoMedicamento = repoMedicamento;
+        this.repoTipo = repoTipo;
+    }
 
     public List<Medicamento> listarMedicamentos() {
         return repoMedicamento.findAll();

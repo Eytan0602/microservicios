@@ -1,6 +1,7 @@
 # Build output
 **/target/
 **/build/
+**/data/
 
 # IDE and editor state
 .idea/

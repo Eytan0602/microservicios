@@ -2,14 +2,16 @@ package com.MicroServicio.Cita;
 
 import java.util.List;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class Servicio {
 
-    @Autowired
-    private Repositorio repositorio;
+    private final Repositorio repositorio;
+
+    public Servicio(Repositorio repositorio) {
+        this.repositorio = repositorio;
+    }
 
     public CitaMedica buscar(String idCita) {
         return repositorio.findById(idCita).orElse(null);

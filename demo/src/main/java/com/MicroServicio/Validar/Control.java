@@ -1,7 +1,6 @@
 package com.MicroServicio.Validar;
 
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,8 +8,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/medicos")
 public class Control {
 
-    @Autowired
-    private Servicio servicio;
+    private final Servicio servicio;
+
+    public Control(Servicio servicio) {
+        this.servicio = servicio;
+    }
 
     @PostMapping("/validar")
     public ResponseEntity<Medico> validar(@RequestBody Entrada e) {
@@ -41,6 +43,11 @@ public class Control {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(m);
+    }
+
+    @GetMapping("/{id}/horarios")
+    public List<HorarioMedico> listarHorarios(@PathVariable Long id) {
+        return servicio.listarHorarios(id);
     }
 
     @PutMapping("/{id}")

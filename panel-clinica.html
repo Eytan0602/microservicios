@@ -68,6 +68,7 @@
     <h2>2 · Citas <small style="display:inline">(8082)</small></h2>
     <small>El médico consulta sus citas pendientes y atiende una.</small>
     <label>Paciente</label><input id="ct-paciente" value="Maria Lopez">
+    <label>DNI del paciente</label><input id="ct-dni" value="45678901">
     <label>Inicio</label><input id="ct-ini" type="datetime-local">
     <label>Fin</label><input id="ct-fin" type="datetime-local">
     <button class="sec" onclick="crearCita()">Crear cita de prueba</button>
@@ -90,12 +91,18 @@
   <!-- 4. CATALOGO -->
   <section>
     <h2>4 · Catálogo <small style="display:inline">(8084)</small></h2>
-    <small>Carga datos de prueba y refresca las listas.</small>
-    <label>Medicamento</label><input id="cg-med" value="Paracetamol">
-    <label>Presentación</label><input id="cg-pres" value="Tableta 500 mg">
+    <small>Medicamentos y exámenes de laboratorio disponibles para recetas y solicitudes.</small>
+    <label>Medicamento</label><input id="cg-med" placeholder="Ej.: Paracetamol">
+    <label>Marca</label><input id="cg-marca" value="Genérico">
+    <label>Descripción</label><input id="cg-desc" placeholder="Descripción del medicamento">
+    <label>Miligramos</label><input id="cg-mg" type="number" min="0" value="500">
+    <label>Presentación</label><input id="cg-pres" value="Tableta">
     <button class="sec" onclick="addMedicamento()">Agregar medicamento</button>
-    <label>Tipo de análisis</label><input id="cg-ta" value="Hemograma completo">
-    <button class="sec" onclick="addTipo()">Agregar tipo</button>
+    <table id="tb-medicamentos"></table>
+    <label>Nuevo tipo de análisis (examen de laboratorio)</label><input id="cg-ta" placeholder="Ej.: Glucosa en sangre">
+    <label>Descripción del análisis</label><input id="cg-ta-desc" placeholder="Qué mide o evalúa">
+    <button class="sec" onclick="addTipo()">Agregar examen al catálogo</button>
+    <table id="tb-tipos"></table>
     <button onclick="cargarCatalogo()">Refrescar listas</button>
   </section>
 
@@ -137,6 +144,13 @@
     <h2>Respuestas del servidor</h2>
     <div id="salida"></div>
   </section>
+
+  <section>
+    <h2>Horario del médico</h2>
+    <small>Días y horas de atención asociados a la sesión actual.</small>
+    <table id="tb-horarios"></table>
+  </section>
+
 </main>
 
 <script>
@@ -219,6 +233,7 @@ async function login() {
     $("quien-txt").textContent = `Dr(a). ${r.datos.nombre} · ${r.datos.especialidad} · id ${r.datos.id}`;
     cargarCatalogo();
     listarCitas();
+    listarHorarios();
   } else {
     S.medico = null;
     $("sesion").textContent = "Usuario o clave incorrectos";
@@ -244,18 +259,25 @@ $("ct-ini").value = ahoraLocal(60); $("ct-fin").value = ahoraLocal(80);
 async function crearCita() {
   if (!S.medico) return alert("Inicia sesión primero.");
   await api("Crear cita","POST",URL.cita+"/citas",
-    { paciente:$("ct-paciente").value, horaInicio:$("ct-ini").value+":00", horaFin:$("ct-fin").value+":00", idMedico:S.medico.id });
+    { paciente:$("ct-paciente").value, dniPaciente:$("ct-dni").value, horaInicio:$("ct-ini").value+":00", horaFin:$("ct-fin").value+":00", idMedico:S.medico.id });
   listarCitas();
 }
 async function listarCitas() {
   if (!S.medico) return alert("Inicia sesión primero.");
   const r = await api("Citas pendientes","GET",`${URL.cita}/citas/medico/${S.medico.id}/pendientes`);
   const t = $("tb-citas");
-  t.innerHTML = "<tr><th>Paciente</th><th>Horario</th><th></th></tr>";
+  t.innerHTML = "<tr><th>Paciente</th><th>DNI</th><th>Horario</th><th></th></tr>";
   (r.datos || []).forEach(c => {
-    t.innerHTML += `<tr><td>${c.paciente}</td><td>${(c.horaInicio||"").replace("T"," ").slice(0,16)}</td>
+    t.innerHTML += `<tr><td>${c.paciente}</td><td>${c.dniPaciente||"-"}</td><td>${(c.horaInicio||"").replace("T"," ").slice(0,16)}</td>
       <td><button onclick="atender('${c.idCita}')">Atender</button></td></tr>`;
   });
+}
+async function listarHorarios() {
+  if (!S.medico) return;
+  const r = await api("Horario del médico","GET",`${URL.validar}/medicos/${S.medico.id}/horarios`);
+  const t = $("tb-horarios");
+  t.innerHTML = "<tr><th>Días</th><th>Desde</th><th>Hasta</th></tr>";
+  (r.datos||[]).forEach(h => t.innerHTML += `<tr><td>${h.dias}</td><td>${h.horaInicio}</td><td>${h.horaFin}</td></tr>`);
 }
 async function atender(idCita) {
   const r = await api("Generar atención","POST",URL.atencion+"/atenciones",{ idCita });
@@ -282,19 +304,24 @@ async function verAtencion() {
 /* ---------- 4. Catálogo ---------- */
 async function addMedicamento() {
   await api("Agregar medicamento","POST",URL.catalogo+"/catalogo/medicamentos",
-    { nombre:$("cg-med").value, presentacion:$("cg-pres").value, stock:100 });
+    { nombre:$("cg-med").value, marca:$("cg-marca").value, descripcion:$("cg-desc").value,
+      miligramos:parseInt($("cg-mg").value)||0, presentacion:$("cg-pres").value, stock:100 });
   cargarCatalogo();
 }
 async function addTipo() {
   await api("Agregar tipo de análisis","POST",URL.catalogo+"/catalogo/tipos-analisis",
-    { nombre:$("cg-ta").value, descripcion:"Analisis clinico" });
+    { nombre:$("cg-ta").value, descripcion:$("cg-ta-desc").value });
   cargarCatalogo();
 }
 async function cargarCatalogo() {
   const m = await api("Listar medicamentos","GET",URL.catalogo+"/catalogo/medicamentos");
-  $("rc-med").innerHTML = (m.datos||[]).map(x=>`<option value="${x.idMedicamento}">${x.nombre} · ${x.presentacion}</option>`).join("");
+  $("rc-med").innerHTML = (m.datos||[]).map(x=>`<option value="${x.idMedicamento}">${x.nombre} · ${x.marca||"Sin marca"} · ${x.miligramos||0} mg · ${x.presentacion}</option>`).join("");
+  $("tb-medicamentos").innerHTML = "<tr><th>Medicamento</th><th>Marca / dosis</th><th>Descripción</th></tr>" +
+    (m.datos||[]).map(x=>`<tr><td>${x.nombre} · ${x.presentacion}</td><td>${x.marca||"-"} · ${x.miligramos||0} mg</td><td>${x.descripcion||"-"}</td></tr>`).join("");
   const t = await api("Listar tipos de análisis","GET",URL.catalogo+"/catalogo/tipos-analisis");
   $("an-ta").innerHTML = (t.datos||[]).map(x=>`<option value="${x.idTA}">${x.nombre}</option>`).join("");
+  $("tb-tipos").innerHTML = "<tr><th>Examen de laboratorio</th><th>Descripción</th></tr>" +
+    (t.datos||[]).map(x=>`<tr><td>${x.nombre}</td><td>${x.descripcion||"-"}</td></tr>`).join("");
 }
 
 /* ---------- 5. Receta ---------- */
