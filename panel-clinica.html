@@ -25,6 +25,7 @@
   table { width:100%; border-collapse:collapse; font-size:13px; margin-top:10px; }
   th, td { text-align:left; padding:5px 4px; border-bottom:1px solid var(--line); vertical-align:top; word-break:break-all; }
   .ids { font-size:12px; background:#eef6f5; border-radius:6px; padding:8px; margin-top:10px; word-break:break-all; }
+  .ids.error { background:#fef3f2; color:var(--err); }
   #log { grid-column:1 / -1; }
   #salida { background:#0f1720; color:#d6e2ee; padding:10px; border-radius:8px; max-height:260px; overflow:auto; font:12px/1.5 ui-monospace, Consolas, monospace; white-space:pre-wrap; }
   .ok { color:#6ce9a6; } .er { color:#fda29b; }
@@ -44,26 +45,27 @@
   <section>
     <h2>Iniciar sesión · Médico <small style="display:inline">(8081)</small></h2>
     <small>Valida usuario y clave contra MicroValidar.</small>
-    <label>Usuario</label><input id="lg-usuario" value="jperez">
-    <label>Clave</label><input id="lg-clave" type="password" value="1234" onkeydown="if(event.key==='Enter')login()">
-    <button onclick="login()">Iniciar sesión</button>
+    <form id="login-form">
+      <label for="lg-usuario">Usuario</label><input id="lg-usuario" name="usuario" autocomplete="username" value="jperez" required>
+      <label for="lg-clave">Clave</label><input id="lg-clave" name="clave" type="password" autocomplete="current-password" value="1234" required>
+      <button id="login-button" type="submit">Iniciar sesión</button>
+    </form>
     <details style="margin-top:12px">
       <summary style="cursor:pointer;font-size:14px;color:var(--brand);font-weight:600">+ Registrar un médico nuevo</summary>
-      <label>Nombre completo</label><input id="nm-nombre" placeholder="Ej: Ana Torres">
-      <label>Especialidad</label><input id="nm-esp" placeholder="Ej: Pediatria">
-      <label>Usuario</label><input id="nm-usuario" placeholder="Ej: atorres">
-      <label>Clave</label><input id="nm-clave" type="password" placeholder="Ej: 1234">
-      <label>Repetir clave</label><input id="nm-clave2" type="password">
+      <label for="nm-nombre">Nombre completo</label><input id="nm-nombre" placeholder="Ej: Ana Torres">
+      <label for="nm-esp">Especialidad</label><input id="nm-esp" placeholder="Ej: Pediatría">
+      <label for="nm-usuario">Usuario</label><input id="nm-usuario" autocomplete="username" placeholder="Ej: atorres">
+      <label for="nm-clave">Clave</label><input id="nm-clave" type="password" autocomplete="new-password" placeholder="Ej: 1234">
+      <label for="nm-clave2">Repetir clave</label><input id="nm-clave2" type="password" autocomplete="new-password">
       <button onclick="crearMedico()">Registrar médico</button>
       <div class="ids" id="nm-msg" style="display:none"></div>
     </details>
-    <div class="ids" id="sesion">Sin sesión</div>
+    <div class="ids" id="sesion" role="status" aria-live="polite">Sin sesión</div>
   </section>
 </div>
 
 <main id="panel" style="display:none">
 
-  <!-- 2. CITAS -->
   <section>
     <h2>2 · Citas <small style="display:inline">(8082)</small></h2>
      <small>El médico solo consulta y atiende las citas que le fueron asignadas.</small>
@@ -71,61 +73,56 @@
     <table id="tb-citas"></table>
   </section>
 
-  <!-- 3. ATENCION -->
   <section>
     <h2>3 · Atención médica <small style="display:inline">(8083)</small></h2>
     <small>Diagnóstico y tratamiento de la atención activa.</small>
     <div class="ids" id="atencion-activa">Sin atención activa</div>
-    <label>Diagnóstico</label><input id="at-diag">
-    <label>Tratamiento</label><input id="at-trat">
-    <label>Observaciones</label><input id="at-obs">
+    <label for="at-diag">Diagnóstico</label><input id="at-diag">
+    <label for="at-trat">Tratamiento</label><input id="at-trat">
+    <label for="at-obs">Observaciones</label><input id="at-obs">
     <button onclick="registrarAtencion()">Guardar</button>
     <button class="sec" onclick="verAtencion()">Consultar</button>
   </section>
 
-  <!-- 4. CATALOGO -->
   <section>
     <h2>4 · Catálogo <small style="display:inline">(8084)</small></h2>
     <small>Medicamentos y exámenes de laboratorio disponibles para recetas y solicitudes.</small>
-    <label>Medicamento</label><input id="cg-med" placeholder="Ej.: Paracetamol">
-    <label>Marca</label><input id="cg-marca" value="Genérico">
-    <label>Descripción</label><input id="cg-desc" placeholder="Descripción del medicamento">
-    <label>Miligramos</label><input id="cg-mg" type="number" min="0" value="500">
-    <label>Presentación</label><input id="cg-pres" value="Tableta">
+    <label for="cg-med">Medicamento</label><input id="cg-med" placeholder="Ej.: Paracetamol">
+    <label for="cg-marca">Marca</label><input id="cg-marca" value="Genérico">
+    <label for="cg-desc">Descripción</label><input id="cg-desc" placeholder="Descripción del medicamento">
+    <label for="cg-mg">Miligramos</label><input id="cg-mg" type="number" min="0" value="500">
+    <label for="cg-pres">Presentación</label><input id="cg-pres" value="Tableta">
     <button class="sec" onclick="addMedicamento()">Agregar medicamento</button>
     <table id="tb-medicamentos"></table>
-    <label>Nuevo tipo de análisis (examen de laboratorio)</label><input id="cg-ta" placeholder="Ej.: Glucosa en sangre">
-    <label>Descripción del análisis</label><input id="cg-ta-desc" placeholder="Qué mide o evalúa">
+    <label for="cg-ta">Nuevo tipo de análisis (examen de laboratorio)</label><input id="cg-ta" placeholder="Ej.: Glucosa en sangre">
+    <label for="cg-ta-desc">Descripción del análisis</label><input id="cg-ta-desc" placeholder="Qué mide o evalúa">
     <button class="sec" onclick="addTipo()">Agregar examen al catálogo</button>
     <table id="tb-tipos"></table>
     <button onclick="cargarCatalogo()">Refrescar listas</button>
   </section>
 
-  <!-- 5. RECETA -->
   <section>
     <h2>5 · Receta <small style="display:inline">(8085)</small></h2>
     <small>Elige medicamentos del catálogo y genera la receta.</small>
-    <label>Medicamento</label><select id="rc-med"></select>
-    <label>Indicaciones</label><input id="rc-ind" value="1 cada 8 horas">
-    <label>Cantidad</label><input id="rc-cant" type="number" value="10" min="1">
+    <label for="rc-med">Medicamento</label><select id="rc-med"></select>
+    <label for="rc-ind">Indicaciones</label><input id="rc-ind" value="1 cada 8 horas">
+    <label for="rc-cant">Cantidad</label><input id="rc-cant" type="number" value="10" min="1">
     <button onclick="agregarLineaReceta()">Agregar a la cesta</button>
     <table id="tb-receta"></table>
-    <label>Indicaciones generales</label><input id="rc-gen" value="Tomar con abundante agua">
+    <label for="rc-gen">Indicaciones generales</label><input id="rc-gen" value="Tomar con abundante agua">
     <button onclick="grabarReceta()">Grabar receta</button>
   </section>
 
-  <!-- 6. ANALISIS -->
   <section>
     <h2>6 · Análisis clínico <small style="display:inline">(8086)</small></h2>
     <small>Elige tipos de análisis del catálogo y genera el análisis.</small>
-    <label>Tipo de análisis</label><select id="an-ta"></select>
-    <label>Observaciones</label><input id="an-obs" value="En ayunas">
+    <label for="an-ta">Tipo de análisis</label><select id="an-ta"></select>
+    <label for="an-obs">Observaciones</label><input id="an-obs" value="En ayunas">
     <button onclick="agregarLineaAnalisis()">Agregar a la cesta</button>
     <table id="tb-analisis"></table>
     <button onclick="grabarAnalisis()">Grabar análisis</button>
   </section>
 
-  <!-- 7. HISTORIA -->
   <section>
     <h2>7 · Historia clínica <small style="display:inline">(8087)</small></h2>
     <small>Almacena toda la atención en la historia del paciente.</small>
@@ -157,6 +154,56 @@ const URL = {
 const S = { medico:null, token:null, idCita:null, idAtencion:null, misCitas:new Set() };
 const $ = id => document.getElementById(id);
 
+function guardarSesion() {
+  if (!S.medico || !S.token) return;
+  sessionStorage.setItem("microservicios.medico", JSON.stringify(S.medico));
+  sessionStorage.setItem("microservicios.token", S.token);
+}
+
+function borrarSesion() {
+  S.medico = null;
+  S.token = null;
+  S.idCita = null;
+  S.idAtencion = null;
+  S.misCitas.clear();
+  sessionStorage.removeItem("microservicios.medico");
+  sessionStorage.removeItem("microservicios.token");
+}
+
+function mostrarPanelMedico() {
+  $("pantalla-login").style.display = "none";
+  $("panel").style.display = "grid";
+  $("quien").style.display = "block";
+  $("quien-txt").textContent = `Dr(a). ${S.medico.nombre} · ${S.medico.especialidad} · id ${S.medico.id}`;
+  cargarCatalogo();
+  listarCitas();
+  listarHorarios();
+}
+
+function restaurarSesion() {
+  try {
+    const medico = JSON.parse(sessionStorage.getItem("microservicios.medico") || "null");
+    const token = sessionStorage.getItem("microservicios.token");
+    if (!medico || !token) return;
+    S.medico = medico;
+    S.token = token;
+    mostrarPanelMedico();
+    api("Validar sesión","GET",`${URL.validar}/medicos/${S.medico.id}`);
+  } catch {
+    borrarSesion();
+  }
+}
+
+function finalizarSesionExpirada() {
+  borrarSesion();
+  $("panel").style.display = "none";
+  $("quien").style.display = "none";
+  $("pantalla-login").style.display = "block";
+  $("sesion").classList.add("error");
+  $("sesion").textContent = "Tu sesión expiró. Inicia sesión de nuevo.";
+  $("atencion-activa").textContent = "Sin atención activa";
+}
+
 function log(titulo, status, cuerpo) {
   const cls = status >= 200 && status < 300 ? "ok" : "er";
   const t = typeof cuerpo === "string" ? cuerpo : JSON.stringify(cuerpo, null, 2);
@@ -176,6 +223,7 @@ async function api(titulo, metodo, url, body) {
     let datos = txt;
     try { datos = txt ? JSON.parse(txt) : ""; } catch (e) {}
     log(titulo, r.status, datos);
+    if (r.status === 401 && S.token) finalizarSesionExpirada();
     return { ok:r.ok, status:r.status, datos };
   } catch (e) {
     log(titulo, 0, "No se pudo conectar (¿servicio apagado o falta CORS?)");
@@ -188,7 +236,6 @@ function necesitaAtencion() {
   return true;
 }
 
-/* ---------- Estado de los servicios ---------- */
 const PUERTOS = [["Validar","validar","/medicos"],["Cita","cita","/citas/mis-pendientes"],["Atención","atencion","/atenciones"],
   ["Catálogo","catalogo","/catalogo/medicamentos"],["Receta","receta","/recetas/x/lineas"],
   ["Análisis","analisis","/analisis/lineas"],["Historia","historia","/historias"]];
@@ -202,7 +249,6 @@ async function revisarEstado() {
   $("estado").innerHTML = html;
 }
 
-/* ---------- 1. Login ---------- */
 async function crearMedico() {
   const msg = $("nm-msg");
   const decir = t => { msg.style.display = "block"; msg.textContent = t; };
@@ -220,26 +266,39 @@ async function crearMedico() {
   } else decir("Error " + r.status + " al crear el médico.");
 }
 async function login() {
+  const boton = $("login-button");
+  const sesion = $("sesion");
+  boton.disabled = true;
+  boton.textContent = "Conectando…";
+  sesion.classList.remove("error");
+  sesion.textContent = "Validando credenciales…";
   const r = await api("Login","POST",URL.validar+"/medicos/validar",
     { usuario:$("lg-usuario").value, clave:$("lg-clave").value });
+  boton.disabled = false;
+  boton.textContent = "Iniciar sesión";
   if (r.ok) {
     S.medico = r.datos.medico;
     S.token = r.datos.token;
-    $("pantalla-login").style.display = "none";
-    $("panel").style.display = "grid";
-    $("quien").style.display = "block";
-    $("quien-txt").textContent = `Dr(a). ${S.medico.nombre} · ${S.medico.especialidad} · id ${S.medico.id}`;
-    cargarCatalogo();
-    listarCitas();
-    listarHorarios();
+    guardarSesion();
+    mostrarPanelMedico();
   } else {
-    S.medico = null; S.token = null; S.misCitas.clear();
-    $("sesion").textContent = "Usuario o clave incorrectos";
+    borrarSesion();
+    sesion.classList.add("error");
+    sesion.textContent = r.status === 401
+      ? "Usuario o clave incorrectos. Verifica tus datos e inténtalo de nuevo."
+      : r.status === 0
+        ? "No se pudo conectar con el servicio de médicos (puerto 8081). Comprueba que esté encendido."
+        : `El servicio de médicos respondió con error ${r.status}. Inténtalo de nuevo.`;
   }
 }
 
+$("login-form").addEventListener("submit", event => {
+  event.preventDefault();
+  login();
+});
+
 function salir() {
-  S.medico = null; S.token = null; S.idCita = null; S.idAtencion = null; S.misCitas.clear();
+  borrarSesion();
   $("panel").style.display = "none";
   $("quien").style.display = "none";
   $("pantalla-login").style.display = "block";
@@ -247,7 +306,6 @@ function salir() {
   $("atencion-activa").textContent = "Sin atención activa";
 }
 
-/* ---------- 2. Citas ---------- */
 async function listarCitas() {
   if (!S.medico) return alert("Inicia sesión primero.");
   const r = await api("Mis citas pendientes","GET",`${URL.cita}/citas/mis-pendientes`);
@@ -283,7 +341,6 @@ async function atender(idCita) {
   }
 }
 
-/* ---------- 3. Atención ---------- */
 async function registrarAtencion() {
   if (!necesitaAtencion()) return;
   await api("Registrar atención","PUT",`${URL.atencion}/atenciones/${S.idAtencion}`,
@@ -294,7 +351,6 @@ async function verAtencion() {
   await api("Consultar atención","GET",`${URL.atencion}/atenciones/${S.idAtencion}`);
 }
 
-/* ---------- 4. Catálogo ---------- */
 async function addMedicamento() {
   await api("Agregar medicamento","POST",URL.catalogo+"/catalogo/medicamentos",
     { nombre:$("cg-med").value, marca:$("cg-marca").value, descripcion:$("cg-desc").value,
@@ -317,7 +373,6 @@ async function cargarCatalogo() {
     (t.datos||[]).map(x=>`<tr><td>${x.nombre}</td><td>${x.descripcion||"-"}</td></tr>`).join("");
 }
 
-/* ---------- 5. Receta ---------- */
 async function agregarLineaReceta() {
   if (!necesitaAtencion()) return;
   await api("Agregar línea de receta","POST",`${URL.receta}/recetas/${S.idAtencion}/lineas`,
@@ -342,7 +397,6 @@ async function grabarReceta() {
   cargarCesta();
 }
 
-/* ---------- 6. Análisis (cesta global: rutas originales) ---------- */
 async function agregarLineaAnalisis() {
   if (!necesitaAtencion()) return;
   await api("Agregar línea de análisis","POST",URL.analisis+"/analisis/lineas",
@@ -366,7 +420,6 @@ async function grabarAnalisis() {
   cargarCestaAnalisis();
 }
 
-/* ---------- 7. Historia ---------- */
 async function registrarHistoria() {
   if (!necesitaAtencion()) return;
   await api("Registrar en historia","POST",`${URL.historia}/historias/atencion/${S.idAtencion}`);
@@ -387,6 +440,7 @@ async function verDetalle(idHC) {
     <td>${d.idReceta?"Sí":"No"}</td><td>${d.idAnalisis?"Sí":"No"}</td></tr>`);
 }
 
+restaurarSesion();
 revisarEstado(); setInterval(revisarEstado, 8000);
 cargarCatalogo();
 </script>
