@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Buscar atención</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<h1>Buscar atención médica</h1>
+<form th:action="@{/atencion/buscar}" method="get">
+    <label for="filtro">Número, cita, paciente o historia clínica</label>
+    <input type="text" id="filtro" name="filtro" th:value="${filtro}">
+    <button type="submit">Buscar</button>
+    <a th:href="@{/atencion/buscar}">Limpiar</a>
+</form>
+<p th:text="${resultados.size() + ' atención(es)'}">0 atención(es)</p>
+<p th:if="${filtro != null and !filtro.isEmpty()}"><a th:href="@{'/api/atenciones/buscar?filtro=' + ${filtro}}" target="_blank">Ver búsqueda JSON</a></p>
+<table>
+    <thead><tr><th>Número</th><th>Fecha</th><th>Paciente</th><th>Cita</th><th>Historia</th><th>Diagnóstico</th><th>Receta</th><th>Análisis</th><th>Acciones</th></tr></thead>
+    <tbody>
+    <tr th:each="a : ${resultados}">
+        <td th:text="${a.idAtencion}">AT-001</td>
+        <td th:text="${#temporals.format(a.fecha, 'yyyy-MM-dd HH:mm')}">2026-01-01</td>
+        <td th:text="${a.paciente}">Paciente</td>
+        <td th:text="${a.idCita}">CIT-001</td>
+        <td th:text="${a.idHC}">HC-001</td>
+        <td th:text="${a.diagnostico}">Diagnóstico</td>
+        <td th:text="${a.idReceta != null ? a.idReceta : 'No'}">No</td>
+        <td th:text="${a.idAnalisis != null ? a.idAnalisis : 'No'}">No</td>
+        <td><a th:href="@{'/atencion/detalle/' + ${a.idAtencion}}">Ver</a> <a th:href="@{'/atencion/editar/' + ${a.idAtencion}}">Editar</a> <a th:href="@{'/api/atenciones/' + ${a.idAtencion} + '/completa'}" target="_blank">JSON</a></td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(resultados)}"><td colspan="9">No se encontraron atenciones.</td></tr>
+    </tbody>
+</table>
+</body>
+</html>

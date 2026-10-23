@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Nueva atención</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<h1>Registrar atención médica</h1>
+<p th:if="${mensajeError}" th:text="${mensajeError}"></p>
+<form th:action="@{/atencion/grabar}" method="post">
+    <p><label for="idAtencion">Número de atención</label><br><input type="text" id="idAtencion" name="idAtencion" th:value="${numeroGenerado}" readonly></p>
+    <p><label for="idCita">Cita asignada</label><br><select id="idCita" name="idCita" required><option value="">Selecciona una cita</option><option th:each="c : ${citas}" th:value="${c.idCita}" th:text="${c.idCita + ' - ' + c.paciente}" th:selected="${citaSeleccionada != null and citaSeleccionada.idCita == c.idCita}"></option></select></p>
+    <p><label for="paciente">Paciente de la cita</label><br><input type="text" id="paciente" name="paciente" th:value="${citaSeleccionada != null ? citaSeleccionada.paciente : ''}" required></p>
+    <p><label for="idHC">Historia clínica de la cita</label><br><input type="text" id="idHC" name="idHC" th:value="${citaSeleccionada != null ? citaSeleccionada.idHC : ''}" required></p>
+    <p><label for="diagnostico">Diagnóstico</label><br><input type="text" id="diagnostico" name="diagnostico" required></p>
+    <p><label for="tratamiento">Tratamiento</label><br><input type="text" id="tratamiento" name="tratamiento" required></p>
+    <p><label for="observaciones">Observaciones</label><br><input type="text" id="observaciones" name="observaciones"></p>
+    <h2>Receta</h2>
+    <p><label><input type="checkbox" name="requiereReceta" value="true"> Registrar receta</label></p>
+    <p><label for="indicacionesReceta">Indicaciones de la receta</label><br><input type="text" id="indicacionesReceta" name="indicacionesReceta"></p>
+    <input type="hidden" name="itemsReceta[0].idLR" value="1">
+    <p><label for="medicamentoId">ID del medicamento</label><br><input type="text" id="medicamentoId" name="itemsReceta[0].idMedicamento"></p>
+    <p><label for="medicamentoNombre">Nombre del medicamento</label><br><input type="text" id="medicamentoNombre" name="itemsReceta[0].nombre"></p>
+    <p><label for="cantidad">Cantidad</label><br><input type="text" id="cantidad" name="itemsReceta[0].cantidad" value="1"></p>
+    <p><label for="indicacionesMedicamento">Indicaciones del medicamento</label><br><input type="text" id="indicacionesMedicamento" name="itemsReceta[0].indicaciones"></p>
+    <h2>Análisis clínico</h2>
+    <p><label><input type="checkbox" name="requiereAnalisis" value="true"> Registrar análisis</label></p>
+    <p><label for="observacionesAnalisis">Observaciones generales</label><br><input type="text" id="observacionesAnalisis" name="observacionesAnalisis"></p>
+    <input type="hidden" name="itemsAnalisis[0].idLA" value="1">
+    <p><label for="analisisId">ID del tipo de análisis</label><br><input type="text" id="analisisId" name="itemsAnalisis[0].idTA"></p>
+    <p><label for="analisisNombre">Nombre del análisis</label><br><input type="text" id="analisisNombre" name="itemsAnalisis[0].nombre"></p>
+    <p><label for="analisisObservaciones">Observaciones del análisis</label><br><input type="text" id="analisisObservaciones" name="itemsAnalisis[0].observaciones"></p>
+    <p><button type="submit">Guardar atención</button></p>
+</form>
+<p><a th:href="@{/atencion/listar}">Cancelar</a></p>
+</body>
+</html>

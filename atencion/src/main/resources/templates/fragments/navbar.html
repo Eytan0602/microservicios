@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<body>
+<nav th:fragment="navbar">
+    <span th:text="${session.medicoNombre}">Médico</span>
+    <a th:href="@{/}">Inicio</a>
+    <a th:href="@{/atencion/nueva}">Nueva atención</a>
+    <a th:href="@{/atencion/listar}">Atenciones</a>
+    <a th:href="@{/atencion/buscar}">Buscar atención</a>
+    <a th:href="@{/solicitudes}">Solicitudes</a>
+    <a th:href="@{/historias}">Historias clínicas</a>
+    <a th:href="@{/api-visor}">API JSON</a>
+    <a th:href="@{/logout}">Cerrar sesión</a>
+    <hr>
+</nav>
+</body>
+</html>

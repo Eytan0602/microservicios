@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>API JSON</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<h1>API REST JSON</h1>
+<p>Abre los endpoints para consultar las respuestas JSON:</p>
+<ul>
+    <li><a th:href="@{/api/atenciones}" target="_blank">Listado de atenciones</a></li>
+    <li><a th:href="@{/api/citas}" target="_blank">Citas</a></li>
+    <li><a th:href="@{/api/citas/pendientes}" target="_blank">Citas pendientes</a></li>
+    <li><a th:href="@{/api/catalogo/medicamentos}" target="_blank">Medicamentos</a></li>
+    <li><a th:href="@{/api/catalogo/analisis}" target="_blank">Tipos de análisis</a></li>
+    <li><a th:href="@{/api/historias}" target="_blank">Historias clínicas</a></li>
+    <li><a th:href="@{/api/recetas}" target="_blank">Recetas</a></li>
+    <li><a th:href="@{/api/analisis}" target="_blank">Análisis registrados</a></li>
+    <li><a th:href="@{/api/validar/medicos}" target="_blank">Médicos</a></li>
+</ul>
+</body>
+</html>

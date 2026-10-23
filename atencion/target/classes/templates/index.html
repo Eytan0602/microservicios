@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema de Atención Médica</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<h1>Sistema de Atención Médica</h1>
+<p>Total de atenciones: <span th:text="${totalAtenciones}">0</span></p>
+<p>Citas pendientes: <span th:text="${citasPendientes}">0</span></p>
+<p>Medicamentos: <span th:text="${totalMedicamentos}">0</span></p>
+<p>Tipos de análisis: <span th:text="${totalAnalisis}">0</span></p>
+<h2>Atenciones registradas</h2>
+<p><a th:href="@{/atencion/nueva}">Registrar atención</a></p>
+<p><a th:href="@{/api/atenciones}" target="_blank">Ver atenciones JSON</a></p>
+<table>
+    <thead>
+    <tr><th>Número</th><th>Fecha</th><th>Paciente</th><th>Cita</th><th>Diagnóstico</th><th>Receta</th><th>Análisis</th><th>Estado</th><th>Acciones</th></tr>
+    </thead>
+    <tbody>
+    <tr th:each="a : ${ultimasAtenciones}">
+        <td th:text="${a.idAtencion}">AT-001</td>
+        <td th:text="${#temporals.format(a.fecha, 'yyyy-MM-dd HH:mm')}">2026-01-01</td>
+        <td th:text="${a.paciente}">Paciente</td>
+        <td th:text="${a.idCita}">CIT-001</td>
+        <td th:text="${a.diagnostico}">Diagnóstico</td>
+        <td th:text="${a.idReceta != null ? a.idReceta : 'No'}">No</td>
+        <td th:text="${a.idAnalisis != null ? a.idAnalisis : 'No'}">No</td>
+        <td th:text="${a.estado}">REGISTRADA</td>
+        <td><a th:href="@{'/atencion/detalle/' + ${a.idAtencion}}">Ver</a> <a th:href="@{'/atencion/editar/' + ${a.idAtencion}}">Editar</a> <a th:href="@{'/api/atenciones/' + ${a.idAtencion} + '/completa'}" target="_blank">JSON</a></td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(ultimasAtenciones)}"><td colspan="9">No hay atenciones registradas.</td></tr>
+    </tbody>
+</table>
+</body>
+</html>

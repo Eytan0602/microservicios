@@ -1,0 +1,9 @@
+com\clinica\analisis\model\AnalisisClinico.class
+com\clinica\analisis\AnalisisApplication.class
+com\clinica\analisis\security\InternalTokenFilter.class
+com\clinica\analisis\service\AnalisisService.class
+com\clinica\analisis\repository\AnalisisDetalleRepository.class
+com\clinica\analisis\model\AnalisisDetalle.class
+com\clinica\analisis\repository\AnalisisClinicoRepository.class
+com\clinica\analisis\controller\AnalisisController.class
+com\clinica\analisis\model\LineaAnalisis.class

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Historia clínica</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<h1>Historia clínica</h1>
+<p>ID: <span th:text="${historia.idHC}">HC-001</span></p>
+<p>Paciente: <span th:text="${historia.paciente}">Paciente</span></p>
+<p>Estado: <span th:text="${historia.estado}">ACTIVA</span></p>
+<p>Fecha de apertura: <span th:text="${historia.fecha}">2026-01-01</span></p>
+<p>Antecedentes: <span th:text="${historia.antecedentes}">Antecedentes</span></p>
+<p><a th:href="@{/historias}">Volver a historias</a></p>
+
+<h2>Atenciones de esta historia</h2>
+<p th:text="${#lists.size(atenciones) + ' atención(es)'}">0 atención(es)</p>
+<p th:if="${#lists.isEmpty(atenciones)}">Aún no hay atenciones registradas.</p>
+
+<div th:each="d : ${atenciones}">
+    <hr>
+    <h3 th:text="${d.atencion.idAtencion}">AT-001</h3>
+    <p>Fecha: <span th:text="${d.atencion.fecha != null ? #temporals.format(d.atencion.fecha, 'yyyy-MM-dd HH:mm') : ''}"></span></p>
+    <p>Médico: <span th:text="${d.medico != null ? d.medico.nombre + ' (' + d.medico.especialidad + ')' : d.atencion.idMedico}"></span></p>
+    <p>Diagnóstico: <span th:text="${d.atencion.diagnostico}"></span></p>
+    <p>Tratamiento: <span th:text="${d.atencion.tratamiento}"></span></p>
+    <p th:if="${d.atencion.observaciones != null and !d.atencion.observaciones.isEmpty()}">Observaciones: <span th:text="${d.atencion.observaciones}"></span></p>
+
+    <h4>Receta</h4>
+    <ul th:if="${d.receta != null}">
+        <li th:each="det : ${d.receta.detalles}" th:text="${det.nombre + ' x' + det.cantidad + ' - ' + det.indicaciones}"></li>
+    </ul>
+    <p th:if="${d.receta == null}">Sin receta.</p>
+
+    <h4>Análisis</h4>
+    <ul th:if="${d.analisis != null}">
+        <li th:each="det : ${d.analisis.detalles}" th:text="${det.nombre + ' - ' + det.observaciones}"></li>
+    </ul>
+    <p th:if="${d.analisis == null}">Sin análisis.</p>
+
+    <p><a th:href="@{'/atencion/detalle/' + ${d.atencion.idAtencion}}">Ver detalle completo</a></p>
+</div>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle de atención</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<h1>Detalle de atención médica</h1>
+<p th:if="${mensajeExito}" th:text="${mensajeExito}"></p>
+<p>Número de atención: <span th:text="${dto.atencion.idAtencion}">AT-001</span></p>
+<p>Estado: <span th:text="${dto.atencion.estado}">REGISTRADA</span></p>
+<p>Paciente: <span th:text="${dto.atencion.paciente}">Paciente</span></p>
+<p>Cita: <span th:text="${dto.atencion.idCita}">CIT-001</span></p>
+<p>Historia clínica:
+    <a th:if="${dto.atencion.idHC != null}" th:href="@{'/historias/' + ${dto.atencion.idHC}}" th:text="${dto.atencion.idHC}">HC-001</a>
+    <span th:if="${dto.atencion.idHC == null}">-</span>
+</p>
+<p>Médico: <span th:text="${dto.medico != null ? dto.medico.nombre + ' (' + dto.medico.especialidad + ')' : dto.atencion.idMedico}">Médico</span></p>
+<p>Fecha: <span th:text="${dto.atencion.fecha != null ? #temporals.format(dto.atencion.fecha, 'yyyy-MM-dd HH:mm:ss') : ''}">2026-01-01</span></p>
+<p>Diagnóstico: <span th:text="${dto.atencion.diagnostico}">Diagnóstico</span></p>
+<p>Tratamiento: <span th:text="${dto.atencion.tratamiento}">Tratamiento</span></p>
+<p th:if="${dto.atencion.observaciones != null and !dto.atencion.observaciones.isEmpty()}">Observaciones: <span th:text="${dto.atencion.observaciones}">Observaciones</span></p>
+<p>
+    <a th:if="${dto.atencion.idMedico == medicoActual}" th:href="@{'/atencion/editar/' + ${dto.atencion.idAtencion}}">Editar</a>
+    <a th:href="@{'/api/atenciones/' + ${dto.atencion.idAtencion} + '/completa'}" target="_blank">Ver JSON</a>
+    <a th:href="@{/atencion/listar}">Volver al listado</a>
+</p>
+
+<h2>Receta médica</h2>
+<div th:if="${dto.receta != null}">
+    <p>ID de receta: <span th:text="${dto.receta.idReceta}">REC-001</span></p>
+    <p>Indicaciones: <span th:text="${dto.receta.indicaciones}">Indicaciones</span></p>
+    <table>
+        <thead><tr><th>Medicamento</th><th>Nombre</th><th>Cantidad</th><th>Indicaciones</th></tr></thead>
+        <tbody>
+        <tr th:each="det : ${dto.receta.detalles}">
+            <td th:text="${det.idMedicamento}">MED-001</td>
+            <td th:text="${det.nombre}">Medicamento</td>
+            <td th:text="${det.cantidad}">1</td>
+            <td th:text="${det.indicaciones}">Indicaciones</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<p th:if="${dto.receta == null}">No se registró receta.</p>
+
+<h2>Análisis clínico</h2>
+<div th:if="${dto.analisis != null}">
+    <p>ID de análisis: <span th:text="${dto.analisis.idAnalisis}">ANA-001</span></p>
+    <p>Observaciones: <span th:text="${dto.analisis.observaciones}">Observaciones</span></p>
+    <table>
+        <thead><tr><th>Tipo</th><th>Nombre</th><th>Observaciones</th></tr></thead>
+        <tbody>
+        <tr th:each="det : ${dto.analisis.detalles}">
+            <td th:text="${det.idTA}">TA-001</td>
+            <td th:text="${det.nombre}">Análisis</td>
+            <td th:text="${det.observaciones}">Observaciones</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<p th:if="${dto.analisis == null}">No se registró análisis.</p>
+
+<h2>Historia clínica</h2>
+<div th:if="${dto.historia != null}">
+    <p>ID de historia: <span th:text="${dto.historia.idHC}">HC-001</span></p>
+    <p>Paciente: <span th:text="${dto.historia.paciente}">Paciente</span></p>
+    <p>Estado: <span th:text="${dto.historia.estado}">ACTIVA</span></p>
+    <p>Antecedentes: <span th:text="${dto.historia.antecedentes}">Antecedentes</span></p>
+    <p><a th:href="@{'/historias/' + ${dto.historia.idHC}}">Ver historia completa con todas sus atenciones</a></p>
+</div>
+<p th:if="${dto.historia == null}">No hay historia clínica asociada.</p>
+<p><a th:href="@{/historias}">Buscar otra historia clínica</a></p>
+</body>
+</html>

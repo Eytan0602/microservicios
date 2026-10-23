@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Solicitudes de citas</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<h1>Solicitudes de cita asignadas a tu cuenta</h1>
+<p th:if="${mensaje}" th:text="${mensaje}"></p>
+<p th:if="${error}" th:text="${error}"></p>
+<table>
+    <thead><tr><th>Solicitud</th><th>Paciente</th><th>Horario preferido</th><th>Acciones</th></tr></thead>
+    <tbody>
+    <tr th:each="solicitud : ${solicitudes}">
+        <td th:text="${solicitud.idCita}">SOL-001</td>
+        <td th:text="${solicitud.paciente}">Paciente</td>
+        <td th:text="${solicitud.horario}">Horario</td>
+        <td>
+            <form th:action="@{'/solicitudes/' + ${solicitud.idCita} + '/aceptar'}" method="post"><button type="submit">Aceptar</button></form>
+            <form th:action="@{'/solicitudes/' + ${solicitud.idCita} + '/rechazar'}" method="post"><button type="submit">Rechazar</button></form>
+        </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(solicitudes)}"><td colspan="4">No tienes solicitudes nuevas.</td></tr>
+    </tbody>
+</table>
+<h2>Pacientes registrados para tu cuenta</h2>
+<table>
+    <thead><tr><th>ID</th><th>Paciente</th><th>Usuario</th><th>Teléfono</th></tr></thead>
+    <tbody>
+    <tr th:each="paciente : ${pacientes}">
+        <td th:text="${paciente.idPaciente}">PAC-001</td>
+        <td th:text="${paciente.nombre}">Paciente</td>
+        <td th:text="${paciente.usuario}">usuario</td>
+        <td th:text="${paciente.telefono}">-</td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(pacientes)}"><td colspan="4">Aún no tienes pacientes asociados a citas.</td></tr>
+    </tbody>
+</table>
+</body>
+</html>

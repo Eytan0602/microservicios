@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Historias clínicas</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<h1>Historias clínicas</h1>
+<p><a th:href="@{/api/historias}" target="_blank">Ver historias JSON</a></p>
+<table>
+    <thead><tr><th>ID</th><th>Paciente</th><th>Fecha</th><th>Estado</th><th>Antecedentes</th><th>Acciones</th></tr></thead>
+    <tbody>
+    <tr th:each="h : ${historias}">
+        <td th:text="${h.idHC}">HC-001</td>
+        <td th:text="${h.paciente}">Paciente</td>
+        <td th:text="${h.fecha}">2026-01-01</td>
+        <td th:text="${h.estado}">ACTIVA</td>
+        <td th:text="${h.antecedentes}">Antecedentes</td>
+        <td><a th:href="@{'/historias/' + ${h.idHC}}">Ver historia</a> <a th:href="@{'/api/historias/' + ${h.idHC}}" target="_blank">JSON</a></td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(historias)}"><td colspan="6">No hay historias clínicas.</td></tr>
+    </tbody>
+</table>
+</body>
+</html>

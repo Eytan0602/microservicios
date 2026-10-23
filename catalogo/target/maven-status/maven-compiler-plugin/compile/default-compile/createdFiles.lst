@@ -1,0 +1,9 @@
+com\clinica\catalogo\CatalogoApplication.class
+com\clinica\catalogo\model\Medicamento.class
+com\clinica\catalogo\service\CatalogoService.class
+com\clinica\catalogo\config\DataInitializer.class
+com\clinica\catalogo\security\InternalTokenFilter.class
+com\clinica\catalogo\repository\TipoAnalisisRepository.class
+com\clinica\catalogo\controller\CatalogoController.class
+com\clinica\catalogo\model\TipoAnalisis.class
+com\clinica\catalogo\repository\MedicamentoRepository.class

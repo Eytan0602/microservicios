@@ -1,0 +1,9 @@
+com\clinica\receta\controller\RecetaController.class
+com\clinica\receta\model\LineaReceta.class
+com\clinica\receta\RecetaApplication.class
+com\clinica\receta\repository\RecetaMedicaRepository.class
+com\clinica\receta\security\InternalTokenFilter.class
+com\clinica\receta\model\RecetaDetalle.class
+com\clinica\receta\repository\RecetaDetalleRepository.class
+com\clinica\receta\model\RecetaMedica.class
+com\clinica\receta\service\RecetaService.class

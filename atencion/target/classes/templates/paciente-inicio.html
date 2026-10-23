@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Portal del paciente</title>
+</head>
+<body>
+<h1>Hola, <span th:text="${session.pacienteNombre}">Paciente</span></h1>
+<p><a href="/paciente/logout">Cerrar sesión</a></p>
+<p th:if="${mensaje}" th:text="${mensaje}"></p>
+<p th:if="${error}" th:text="${error}"></p>
+<h2>Solicitar una cita</h2>
+<form action="/paciente/solicitudes" method="post">
+    <p><label for="idMedico">Médico</label><br>
+        <select id="idMedico" name="idMedico" required>
+            <option value="">Selecciona un médico</option>
+            <option th:each="medico : ${medicos}" th:value="${medico.idMedico}" th:text="${medico.nombre + ' - ' + medico.especialidad}"></option>
+        </select>
+    </p>
+    <p><label for="horario">Fecha y hora preferida</label><br><input type="datetime-local" id="horario" name="horario"></p>
+    <p><button type="submit">Enviar solicitud</button></p>
+</form>
+<h2>Mis solicitudes</h2>
+<table>
+    <thead><tr><th>Número</th><th>Médico</th><th>Horario solicitado</th><th>Estado</th></tr></thead>
+    <tbody>
+    <tr th:each="solicitud : ${solicitudes}">
+        <td th:text="${solicitud.idCita}">SOL-001</td>
+        <td th:text="${solicitud.idMedico}">MED-01</td>
+        <td th:text="${solicitud.horario}">2026-01-01</td>
+        <td th:text="${solicitud.estado}">SOLICITADA</td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(solicitudes)}"><td colspan="4">Todavía no tienes solicitudes.</td></tr>
+    </tbody>
+</table>
+</body>
+</html>

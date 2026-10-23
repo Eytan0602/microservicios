@@ -1,0 +1,14 @@
+com\clinica\atencion\web\LoginController.class
+com\clinica\atencion\AtencionApplication.class
+com\clinica\atencion\dto\RegistroAtencionRequest.class
+com\clinica\atencion\dto\LineaAnalisisDto.class
+com\clinica\atencion\dto\LineaRecetaDto.class
+com\clinica\atencion\dto\AtencionMedicaCompletaDto.class
+com\clinica\atencion\service\AtencionService.class
+com\clinica\atencion\config\WebConfig.class
+com\clinica\atencion\web\DoctorSessionInterceptor.class
+com\clinica\atencion\controller\MicroAtencionRestController.class
+com\clinica\atencion\repository\AtencionMedicaRepository.class
+com\clinica\atencion\web\WebAtencionController.class
+com\clinica\atencion\model\AtencionMedica.class
+com\clinica\atencion\dto\EditarAtencionRequest.class

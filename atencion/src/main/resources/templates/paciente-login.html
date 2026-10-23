@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ingresar como paciente</title>
+</head>
+<body>
+<h1>Ingresar como paciente</h1>
+<p th:if="${error}" th:text="${error}"></p>
+<form action="/paciente/login" method="post">
+    <p><label for="usuario">Usuario</label><br><input type="text" id="usuario" name="usuario" required></p>
+    <p><label for="clave">Clave</label><br><input type="password" id="clave" name="clave" required></p>
+    <p><button type="submit">Ingresar</button></p>
+</form>
+<p><a href="/paciente/registro">Crear cuenta de paciente</a></p>
+<p><a href="/login">Ingresar como médico</a></p>
+</body>
+</html>

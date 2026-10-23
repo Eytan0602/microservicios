@@ -1,0 +1,7 @@
+com\clinica\historia\controller\HistoriaController.class
+com\clinica\historia\service\HistoriaService.class
+com\clinica\historia\HistoriaApplication.class
+com\clinica\historia\security\InternalTokenFilter.class
+com\clinica\historia\repository\HistoriaClinicaRepository.class
+com\clinica\historia\config\DataInitializer.class
+com\clinica\historia\model\HistoriaClinica.class
